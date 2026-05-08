@@ -456,6 +456,34 @@ function rProgress(c){
   const allSteps=dedupByDate([...(st.steps||[]),...sess.filter(s=>s.steps).map(s=>({date:s.date,steps:s.steps}))].sort((a,b)=>a.date.localeCompare(b.date)),'steps').slice(-14);
   if(allSteps.length>=1){const sc2=document.createElement('div');sc2.className='card';sc2.innerHTML='<div class="card-title">Daily steps</div><div class="chart-wrap"><canvas id="stepsChart"></canvas></div>';c.appendChild(sc2);}
   if(sess.length>1){const fc=document.createElement('div');fc.className='card';fc.innerHTML='<div class="card-title">Sessions per week</div><div class="chart-wrap"><canvas id="sessionsChart"></canvas></div>';c.appendChild(fc);}
+  // Import / Export card
+  const iec=document.createElement('div');iec.className='card';
+  iec.innerHTML='<div class="card-title">Data</div>';
+  const impBtn=document.createElement('button');impBtn.className='btn';impBtn.textContent='Import backup';
+  impBtn.onclick=()=>{
+    const fi=document.createElement('input');fi.type='file';fi.accept='.json';
+    fi.onchange=async e=>{
+      const file=e.target.files[0];if(!file)return;
+      try{
+        const text=await file.text();
+        const data=JSON.parse(text);
+        if(!data.sessions||!Array.isArray(data.sessions))throw new Error('Invalid backup file');
+        localStorage.setItem(SK,text);
+        st=await ld();render();
+        toast('Imported '+data.sessions.length+' sessions successfully');
+      }catch(err){toast('Import failed: '+(err.message||'invalid file'),true);}
+    };
+    fi.click();
+  };
+  const expBtn=document.createElement('button');expBtn.className='btn';expBtn.style.marginLeft='8px';expBtn.textContent='Export backup';
+  expBtn.onclick=()=>{
+    const blob=new Blob([JSON.stringify(st,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='training-tracker-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();URL.revokeObjectURL(a.href);
+  };
+  iec.appendChild(impBtn);iec.appendChild(expBtn);c.appendChild(iec);
+
   const hc=document.createElement('div');hc.className='card';hc.innerHTML='<div class="card-title">Session history</div>';
   const recent=sess.slice(-10).reverse();
   if(!recent.length){hc.innerHTML+='<div style="padding:1rem;text-align:center;color:#888;font-size:13px;">No sessions yet.</div>';}
