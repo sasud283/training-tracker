@@ -60,6 +60,8 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.01em;}
 .badge-a{background:#DBEAFE;color:#1d4ed8;}
 .badge-b{background:#FEF9C3;color:#854d0e;}
+.badge-c{background:#DCFCE7;color:#15803d;}
+.wk-btn.wc{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
 .sec-hdr{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;padding:14px 0 6px;}
 .wt-row{display:flex;align-items:center;gap:12px;margin-bottom:1rem;}
 .wt-row label{font-size:13px;font-weight:600;letter-spacing:-0.01em;color:var(--text-muted);min-width:110px;}
@@ -92,6 +94,17 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 .chg-date{font-size:11px;color:var(--text-dim);margin-top:3px;font-weight:500;}
 .ver{font-size:11px;color:var(--text-dim);text-align:right;margin-top:-0.5rem;margin-bottom:1rem;font-weight:500;}
 #save-warning{width:100%;background:#FEF9C3;color:#854d0e;border:1px solid #fde68a;border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;margin-top:6px;}
+.wellness-label{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;margin-top:0.75rem;}
+.wellness-label:first-of-type{margin-top:0;}
+.phase-btns,.energy-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.phase-btn,.energy-btn{padding:5px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;background:var(--white);color:var(--text-muted);font-family:inherit;transition:all 0.15s;}
+.phase-btn:hover,.energy-btn:hover{border-color:var(--text);color:var(--text);}
+.phase-btn.pm{background:#FEE2E2;color:#b91c1c;border-color:#fca5a5;}
+.phase-btn.pf{background:#DCFCE7;color:#15803d;border-color:#86efac;}
+.phase-btn.pl{background:#EDE9FE;color:#6d28d9;border-color:#c4b5fd;}
+.energy-btn.es{background:#DCFCE7;color:#15803d;border-color:#86efac;}
+.energy-btn.en{background:var(--surface);color:var(--text);border-color:var(--border);}
+.energy-btn.ew{background:#FEF3C7;color:#92400e;border-color:#fcd34d;}
 </style>
 </head>
 <body>
@@ -123,6 +136,12 @@ b3_legrise:`<svg viewBox="0 0 52 52"><circle cx="26" cy="18" r="4" fill="none" s
 b3_stepup:`<svg viewBox="0 0 52 52"><circle cx="26" cy="8" r="4" fill="none" stroke="#555" stroke-width="1.8"/><line x1="26" y1="12" x2="26" y2="26" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="26" y1="18" x2="14" y2="14" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="26" y1="18" x2="38" y2="16" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="26" y1="26" x2="18" y2="38" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="18" y1="38" x2="14" y2="47" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="26" y1="26" x2="34" y2="38" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="34" y1="38" x2="38" y2="47" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><path d="M18 38 Q14 30 18 22" stroke="#1D9E75" stroke-width="1.2" fill="none"/></svg>`,
 b_wallsit:`<svg viewBox="0 0 52 52"><rect x="40" y="6" width="4" height="40" rx="1" fill="#e8e5de"/><circle cx="28" cy="10" r="4" fill="none" stroke="#555" stroke-width="1.8"/><line x1="28" y1="14" x2="32" y2="24" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="24" x2="40" y2="24" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="24" x2="18" y2="26" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="24" x2="30" y2="37" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="30" y1="37" x2="22" y2="46" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="30" y1="37" x2="40" y2="46" stroke="#555" stroke-width="1.8" stroke-linecap="round"/><line x1="6" y1="46" x2="40" y2="46" stroke="#ccc" stroke-width="1.2"/></svg>`
 };
+
+// Workout C reuses existing illustrations
+IL.c1_rdl=IL.b3_stepup;IL.c1_bridge=IL.b2_glute;
+IL.c2_row=IL.a1_row;IL.c2_pushup=IL.a3_plank;
+IL.c3_lateral=IL.a3_facepull;IL.c3_birddog=IL.a2_birddog;
+IL.c_carry=IL.a_suitcase;
 
 const YT={
 a1_row:'https://www.youtube.com/results?search_query=incline+dumbbell+bicep+curl+how+to',
@@ -168,26 +187,45 @@ B:{name:'Workout B — lower body & glutes',blocks:[
   {name:'Finisher',exercises:[
     {id:'b_wallsit',name:'Isometric squat hold with DB',sets:3,reps:'30 sec hold',wr:'4–8kg',dw:'4',u:'kg'}]}
 ]}};
+PLAN0.C={name:'Workout C — full body',blocks:[
+  {name:'Block 1: Lower Body',exercises:[
+    {id:'c1_rdl',name:'Romanian deadlift with DB',sets:3,reps:'10 reps',wr:'6–10kg',dw:'6',u:'kg'},
+    {id:'c1_bridge',name:'Glute bridge with DB',sets:3,reps:'15 reps',wr:'8–12kg',dw:'8',u:'kg'}]},
+  {name:'Block 2: Upper Body Push & Pull',exercises:[
+    {id:'c2_row',name:'DB bent-over row',sets:3,reps:'12 reps',wr:'6–10kg',dw:'6',u:'kg'},
+    {id:'c2_pushup',name:'Incline push-up',sets:3,reps:'10–12 reps',wr:'Bodyweight',dw:'',u:''}]},
+  {name:'Block 3: Core & Shoulders',exercises:[
+    {id:'c3_lateral',name:'DB lateral raise',sets:3,reps:'15 reps',wr:'2–4kg',dw:'2',u:'kg'},
+    {id:'c3_birddog',name:'Bird dog',sets:3,reps:'10 reps each side',wr:'Bodyweight',dw:'',u:''}]},
+  {name:'Finisher',exercises:[
+    {id:'c_carry',name:'Farmer\'s carry (both hands)',sets:2,reps:'30 steps',wr:'8–12kg each',dw:'8',u:'kg'}]}
+]};
+
 const SYS=`You are an expert personal trainer and nutrition coach AI for a 43-year-old woman.
 Goals: lose weight to reach her goal (she sets this herself in the app), reduce tummy, improve posture, balance proportions (34F bra — through exercise not surgery).
 Knee issues: knee-safe exercises only, build knee strength not aggravate.
 Health: she has endometriosis. On high-pain or endo flare-up days, significantly reduce intensity — prioritise gentle movement, stretching, or rest. Never push through endo pain. Period and cramp days should also be treated with extra care — lower intensity, avoid heavy core compression.
-4 sessions/week Mon/Wed/Fri/weekend, alternating A/B. 45 mins active. Not a gym lover.
+4 sessions/week Mon/Wed/Fri/weekend, rotating A/B/C. Workout A = upper body & core, B = lower body & glutes, C = full body. 45 mins active. Not a gym lover.
+IMPORTANT programme rule: Workout C must never repeat exercises or movement patterns already used in A or B that same week. Specifically — C must not include: squat/lunge patterns (those belong to B), overhead or floor pressing (belongs to A), vertical pulling/curls (belongs to A), supine floor core work like dead bug/hollow body/snow angel (belongs to A), side plank variants (belongs to B), donkey kicks or hip abductions (belongs to B). C should use movement patterns not covered in A or B: hip-hinge (e.g. RDL), horizontal push (e.g. push-up), horizontal pull (e.g. bent-over row), quadruped core (e.g. bird dog), isolation work not duplicated elsewhere, and loaded carries distinct from A's.
 Food: she does NOT count calories — give no numbers. Assess quality, protein, veg/fibre, balance. Note that anti-inflammatory foods are particularly beneficial given her endo.
 Bust reduction via exercise is not directly possible; focus on posture, back/shoulder strength, overall fat loss.
+Cycle phase guidance: when menstrual phase — reduce intensity, gentle movement, avoid heavy loading and strong core compression; when follicular phase — energy is building, good time for progression and new challenges; when luteal phase — may feel heavier or fatigued, focus on technique over load, lower volume if needed.
+Energy level guidance: if feeling weak — cut sets or load by ~20–30%, focus on form; if feeling normal — follow plan as written; if feeling strong — encourage pushing the upper end of weight ranges.
+Always factor in any stated weaknesses (e.g. tight hips, low motivation) with targeted modifications.
 Be warm, specific, practical, encouraging. Never judge food choices harshly.`;
 
-const EMPTY_ST=()=>({sessions:[],weights:[],steps:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:6,planChanges:[],pendingAi:null,goalWeight:null});
+const EMPTY_ST=()=>({sessions:[],weights:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:8,planChanges:[],pendingAi:null,goalWeight:null});
 
 async function ld(){
   try{
     const raw=localStorage.getItem(SK);
     if(raw){
       const p=JSON.parse(raw);
-      if(!p.steps)p.steps=[];
       if(!p.goalWeight)p.goalWeight=null;
       // v6 migration: reset plan to fresh exercises (changed May 2026)
       if(!p.planVersion||p.planVersion<6){p.plan=JSON.parse(JSON.stringify(PLAN0));p.planVersion=6;}
+      if(p.planVersion<7){if(!p.plan.C)p.plan.C=JSON.parse(JSON.stringify(PLAN0.C));p.planVersion=7;}
+      if(p.planVersion<8){p.plan.C=JSON.parse(JSON.stringify(PLAN0.C));p.planVersion=8;}
       return p;
     }
   }catch(e){}
@@ -201,22 +239,25 @@ async function sv(s){
 let st=EMPTY_ST();
 let tab='today';
 let wk='A';
-let sd={},pain=[],notes='',cw='',cs='',air='',ail=false,ci={},savedFlash=false;
+let sd={},pain=[],notes='',cw='',air='',ail=false,ci={},savedFlash=false;
+let cyclePhase=null,energyLevel=null;
 
 
 // Boot: load state then render
 (async()=>{
   st=await ld();
-  wk=st.sessions.length?(st.sessions[st.sessions.length-1].type==='A'?'B':'A'):'A';
+  const _last=st.sessions.length?st.sessions[st.sessions.length-1].type:null;
+  wk=_last==='A'?'B':_last==='B'?'C':'A';
   render();
 })();
 
 function initSd(t){sd={};st.plan[t].blocks.forEach(b=>b.exercises.forEach(ex=>{sd[ex.id]={weight:ex.dw,feel:null};}));}
 
-function mkThumb(id,sm){
+function mkThumb(id,sm,name){
   const d=document.createElement('div');
   d.className=sm?'prog-thumb':'ex-thumb';
-  d.innerHTML=(IL[id]||'')+(YT[id]?`<a class="yt-link" href="${YT[id]}" target="_blank">YT</a>`:'');
+  const ytUrl=name?`https://www.youtube.com/results?search_query=${encodeURIComponent(name+' exercise how to')}`:YT[id];
+  d.innerHTML=(IL[id]||'')+(ytUrl?`<a class="yt-link" href="${ytUrl}" target="_blank" rel="noopener">YT</a>`:'');
   return d;
 }
 
@@ -249,6 +290,33 @@ function rToday(c){
     const d=document.createElement('button');d.className='dismiss';d.textContent='dismiss';
     d.onclick=async()=>{st.pendingAi=null;await sv(st);render();};b.appendChild(d);c.appendChild(b);
   }
+  // Wellness check-in card
+  const wlc=document.createElement('div');wlc.className='card';
+  wlc.innerHTML='<div class="card-title">Wellness check-in</div>';
+  const cpLbl=document.createElement('div');cpLbl.className='wellness-label';cpLbl.textContent='Cycle phase';wlc.appendChild(cpLbl);
+  const cpBtns=document.createElement('div');cpBtns.className='phase-btns';
+  [['menstrual','pm','Menstrual'],['follicular','pf','Follicular'],['luteal','pl','Luteal']].forEach(([val,cls,lbl])=>{
+    const btn=document.createElement('button');btn.className='phase-btn'+(cyclePhase===val?' '+cls:'');btn.textContent=lbl;
+    btn.onclick=()=>{cyclePhase=cyclePhase===val?null:val;render();};cpBtns.appendChild(btn);
+  });
+  wlc.appendChild(cpBtns);
+  const elLbl=document.createElement('div');elLbl.className='wellness-label';elLbl.textContent='Energy today';wlc.appendChild(elLbl);
+  const elBtns=document.createElement('div');elBtns.className='energy-btns';
+  [['strong','es','Strong'],['normal','en','Normal'],['weak','ew','Weak']].forEach(([val,cls,lbl])=>{
+    const btn=document.createElement('button');btn.className='energy-btn'+(energyLevel===val?' '+cls:'');btn.textContent=lbl;
+    btn.onclick=()=>{energyLevel=energyLevel===val?null:val;render();};elBtns.appendChild(btn);
+  });
+  wlc.appendChild(elBtns);
+  const plbl=document.createElement('div');plbl.className='wellness-label';plbl.textContent='Any pain or limitations today?';wlc.appendChild(plbl);
+  const pr=document.createElement('div');pr.className='pain-row';
+  ['Knees','Lower back','Shoulders','Wrists','General fatigue','Period cramps','Endo flare-up','None'].forEach(a=>{
+    const btn=document.createElement('button');btn.className='pain-btn'+(pain.includes(a)?' on':'');btn.textContent=a;
+    btn.onclick=()=>{pain=a==='None'?[]:(pain.includes(a)?pain.filter(x=>x!==a):[...pain,a]);render();};
+    pr.appendChild(btn);
+  });
+  wlc.appendChild(pr);
+  c.appendChild(wlc);
+
   const wc=document.createElement('div');wc.className='card';
   wc.innerHTML='<div class="card-title">Daily check-in</div>';
   const wr=document.createElement('div');wr.className='wt-row';
@@ -256,35 +324,22 @@ function rToday(c){
   const wi=document.createElement('input');wi.type='number';wi.className='wt-in';wi.placeholder='68.0';wi.step='0.1';wi.value=cw;
   wi.oninput=e=>{cw=e.target.value;};wr.appendChild(wi);wc.appendChild(wr);
 
-  const sr=document.createElement('div');sr.className='wt-row';
-  sr.innerHTML='<label>Steps today</label>';
-  const si=document.createElement('input');si.type='number';si.className='wt-in';si.placeholder='8000';si.value=cs;
-  si.oninput=e=>{cs=e.target.value;};sr.appendChild(si);wc.appendChild(sr);
-
   // Standalone save for daily stats — no workout required
   const dailyBr=document.createElement('div');dailyBr.style.cssText='margin-top:0.75rem;display:flex;align-items:center;gap:12px;';
   const dailySave=document.createElement('button');dailySave.className='btn primary';dailySave.textContent='Save daily stats';
   dailySave.onclick=saveDailyStats;
-  const dailyNote=document.createElement('span');dailyNote.style.cssText='font-size:11px;color:var(--text-dim);';dailyNote.textContent='No workout today? Just save your stats here.';
+  const dailyNote=document.createElement('span');dailyNote.style.cssText='font-size:11px;color:var(--text-dim);';dailyNote.textContent='No workout today? Just save your weight here.';
   dailyBr.appendChild(dailySave);dailyBr.appendChild(dailyNote);wc.appendChild(dailyBr);
 
-  const pl=document.createElement('div');pl.style.cssText='font-size:12px;color:#666;margin-top:1rem;margin-bottom:7px;';
-  pl.textContent='Any pain or limitations today?';wc.appendChild(pl);
-  const pr=document.createElement('div');pr.className='pain-row';
-  ['Knees','Lower back','Shoulders','Wrists','General fatigue','On my period','Period cramps','Endo flare-up','None'].forEach(a=>{
-    const btn=document.createElement('button');btn.className='pain-btn'+(pain.includes(a)?' on':'');btn.textContent=a;
-    btn.onclick=()=>{pain=a==='None'?[]:(pain.includes(a)?pain.filter(x=>x!==a):[...pain,a]);render();};
-    pr.appendChild(btn);
-  });
-  wc.appendChild(pr);c.appendChild(wc);
+  c.appendChild(wc);
 
   const wkc=document.createElement('div');wkc.className='card';
   wkc.innerHTML='<div class="card-title">Today\'s workout <span style="font-size:11px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">(suggested — tap to change)</span></div>';
   const tg=document.createElement('div');tg.className='wk-toggle';
-  ['A','B'].forEach(t=>{
+  [['A','Upper body & core'],['B','Lower body & glutes'],['C','Full body']].forEach(([t,label])=>{
     const btn=document.createElement('button');
     btn.className='wk-btn'+(wk===t?' w'+t.toLowerCase():'');
-    btn.innerHTML='<strong>'+t+'</strong> — '+(t==='A'?'Upper body & core':'Lower body & glutes');
+    btn.innerHTML='<strong>'+t+'</strong> — '+label;
     btn.onclick=()=>{wk=t;initSd(t);render();};tg.appendChild(btn);
   });
   wkc.appendChild(tg);c.appendChild(wkc);
@@ -297,7 +352,7 @@ function rToday(c){
       const s=sd[ex.id]||{weight:ex.dw,feel:null};
       const wrap=document.createElement('div');wrap.className='exercise-block';
       const mr=document.createElement('div');mr.className='ex-main';
-      mr.appendChild(mkThumb(ex.id,false));
+      mr.appendChild(mkThumb(ex.id,false,ex.name));
       const inf=document.createElement('div');inf.className='ex-info';
       inf.innerHTML='<div class="ex-name">'+ex.name+'</div><div class="ex-sub">'+ex.sets+' sets · '+ex.reps+' · '+ex.wr+'</div>';
       const ctrl=document.createElement('div');ctrl.className='ex-controls';
@@ -334,8 +389,8 @@ function rToday(c){
     br.appendChild(sb);br.appendChild(warn);
     // wire save-anyway after DOM insertion
     setTimeout(()=>{const btn=document.getElementById('save-anyway');if(btn)btn.onclick=async()=>{
-      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,steps:cs?parseInt(cs):null};
-      st.sessions.push(sess);await sv(st);notes='';cw='';cs='';pain=[];sd={};air='';savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
+      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null};
+      st.sessions.push(sess);await sv(st);notes='';cw='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
     };},50);
   } else {
     br.appendChild(sb);
@@ -346,25 +401,15 @@ function rToday(c){
 }
 
 async function saveDailyStats(){
-  if(!cw&&!cs){toast('Enter a weight or step count first.', true);return;}
-  const today=new Date().toISOString().slice(0,10); // YYYY-MM-DD
-  if(cw){
-    const w=parseFloat(cw);
-    const idx=st.weights.findIndex(e=>e.date.slice(0,10)===today);
-    if(idx>=0)st.weights[idx].weight=w;
-    else st.weights.push({date:new Date().toISOString(),weight:w});
-  }
-  if(cs){
-    if(!st.steps)st.steps=[];
-    const s=parseInt(cs);
-    const idx=st.steps.findIndex(e=>e.date.slice(0,10)===today);
-    if(idx>=0)st.steps[idx].steps=s;
-    else st.steps.push({date:new Date().toISOString(),steps:s});
-  }
+  if(!cw){toast('Enter your weight first.', true);return;}
+  const today=new Date().toISOString().slice(0,10);
+  const w=parseFloat(cw);
+  const idx=st.weights.findIndex(e=>e.date.slice(0,10)===today);
+  if(idx>=0)st.weights[idx].weight=w;
+  else st.weights.push({date:new Date().toISOString(),weight:w});
   await sv(st);
-  const saved=[];if(cw)saved.push(cw+'kg');if(cs)saved.push(parseInt(cs).toLocaleString()+' steps');
-  cw='';cs='';
-  toast('Saved: '+saved.join(' · '));
+  cw='';
+  toast('Saved: '+w+'kg');
   render();
 }
 
@@ -378,12 +423,11 @@ async function saveSess(){
     if(warn){warn.style.display='block';return;}
     return;
   }
-  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,steps:cs?parseInt(cs):null};
+  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null};
   if(cw){const w=parseFloat(cw);const idx=st.weights.findIndex(e=>e.date.slice(0,10)===today);if(idx>=0)st.weights[idx].weight=w;else st.weights.push({date:sess.date,weight:w});}
-  if(cs){if(!st.steps)st.steps=[];const s=parseInt(cs);const idx=st.steps.findIndex(e=>e.date.slice(0,10)===today);if(idx>=0)st.steps[idx].steps=s;else st.steps.push({date:sess.date,steps:s});}
   st.sessions.push(sess);
   const saveResult=await sv(st);
-  notes='';cw='';cs='';pain=[];sd={};air='';
+  notes='';cw='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;
   if(st.sessions.length%3===0)aiReview();
   // Show confirmation in the save button area
   savedFlash=true;render();
@@ -392,7 +436,8 @@ async function saveSess(){
 
 async function askAi(){
   ail=true;render();
-  const p='Workout '+wk+'. Pain: '+(pain.join(',')||'none')+'. Data: '+JSON.stringify(sd)+'. Notes: '+(notes||'none')+'. Recent: '+st.sessions.slice(-4).map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')).join(' | ')+'. Give 3-5 sentence personalised coaching response.';
+  const wellness=[cyclePhase?'Cycle phase: '+cyclePhase:'',energyLevel?'Energy: '+energyLevel:''].filter(Boolean).join('. ');
+  const p='Workout '+wk+'. '+(wellness?wellness+'. ':'')+' Pain: '+(pain.join(',')||'none')+'. Data: '+JSON.stringify(sd)+'. Notes: '+(notes||'none')+'. Recent: '+st.sessions.slice(-4).map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')).join(' | ')+'. Give 3-5 sentence personalised coaching response. If cycle phase, energy level or weaknesses are provided, give specific adjustments for today\'s session accordingly.';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:p}]})});
     const d=await r.json();air=d.content?.find(b=>b.type==='text')?.text||'No response.';
@@ -491,8 +536,6 @@ function rProgress(c){
     c.appendChild(pc);
   }
   if(wts.length>1){const wc=document.createElement('div');wc.className='card';wc.innerHTML='<div class="card-title">Weight trend</div><div class="chart-wrap"><canvas id="weightChart"></canvas></div>';c.appendChild(wc);}
-  const allSteps=dedupByDate([...(st.steps||[]),...sess.filter(s=>s.steps).map(s=>({date:s.date,steps:s.steps}))].sort((a,b)=>a.date.localeCompare(b.date)),'steps').slice(-14);
-  if(allSteps.length>=1){const sc2=document.createElement('div');sc2.className='card';sc2.innerHTML='<div class="card-title">Daily steps</div><div class="chart-wrap"><canvas id="stepsChart"></canvas></div>';c.appendChild(sc2);}
   if(sess.length>1){const fc=document.createElement('div');fc.className='card';fc.innerHTML='<div class="card-title">Sessions per week</div><div class="chart-wrap"><canvas id="sessionsChart"></canvas></div>';c.appendChild(fc);}
   // Import / Export card
   const iec=document.createElement('div');iec.className='card';
@@ -532,7 +575,6 @@ function rProgress(c){
     left.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+new Date(s.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px;"><span class="badge badge-'+s.type.toLowerCase()+'">'+s.type+'</span>'+(s.pain.length?' · <span style="color:#b91c1c">pain: '+s.pain.join(', ')+'</span>':'')+Object.entries(fs).map(([f,n])=>' · '+n+' '+f).join('')+'</div>'+(s.notes?'<div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-style:italic;">"'+s.notes+'"</div>':'');
     const right=document.createElement('div');right.style.cssText='text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;';
     if(s.weight)right.innerHTML+='<div style="font-size:14px;font-weight:700;letter-spacing:-0.02em;color:var(--green);">'+s.weight+'kg</div>';
-    if(s.steps)right.innerHTML+='<div style="font-size:11px;color:var(--text-muted);">'+s.steps.toLocaleString()+' steps</div>';
     const del=document.createElement('button');del.style.cssText='font-size:11px;color:#cc4444;background:none;border:none;cursor:pointer;padding:0;margin-top:4px;';del.textContent='Delete';
     del.onclick=()=>{del.textContent='Sure?';const no=document.createElement('button');no.style.cssText='margin-left:4px;font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;';no.textContent='No';no.onclick=e=>{e.stopPropagation();del.textContent='Delete';no.remove();};del.after(no);
       del.onclick=async()=>{const idx=st.sessions.indexOf(s);if(idx>=0)st.sessions.splice(idx,1);await sv(st);render();};};
@@ -546,11 +588,6 @@ function iCharts(){
   if(wts.length>1&&document.getElementById('weightChart')){
     if(ci.w)ci.w.destroy();
     ci.w=new Chart(document.getElementById('weightChart'),{type:'line',data:{labels:wts.map(w=>new Date(w.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})),datasets:[{label:'Weight',data:wts.map(w=>w.weight),borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',tension:0.3,fill:true,pointRadius:4,pointBackgroundColor:'#1D9E75'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'kg'}}}}});
-  }
-  const allStepsC=dedupByDate([...(st.steps||[]),...sess.filter(s=>s.steps).map(s=>({date:s.date,steps:s.steps}))].sort((a,b)=>a.date.localeCompare(b.date)),'steps').slice(-14);
-  if(allStepsC.length>1&&document.getElementById('stepsChart')){
-    if(ci.st)ci.st.destroy();
-    ci.st=new Chart(document.getElementById('stepsChart'),{type:'bar',data:{labels:allStepsC.map(s=>new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})),datasets:[{label:'Steps',data:allStepsC.map(s=>s.steps),backgroundColor:'#1D9E75',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}}});
   }
   if(sess.length>1&&document.getElementById('sessionsChart')){
     const wks={};sess.forEach(s=>{const d=new Date(s.date),sw=new Date(d);sw.setDate(d.getDate()-d.getDay());const k=sw.toLocaleDateString('en-GB',{day:'numeric',month:'short'});wks[k]=(wks[k]||0)+1;});
@@ -583,7 +620,7 @@ function rProg(c){
   if(!st.sessions.length){const n=document.createElement('div');n.style.cssText='font-size:11px;color:var(--text-dim);margin-top:6px;';n.textContent='Log at least 1 session to unlock.';rc.appendChild(n);}
   c.appendChild(rc);
 
-  ['A','B'].forEach(type=>{
+  ['A','B','C'].forEach(type=>{
     const pd=st.plan[type];
     const pc=document.createElement('div');pc.className='card';
     pc.innerHTML='<div class="card-title"><span class="badge badge-'+type.toLowerCase()+'">'+type+'</span>&nbsp; '+pd.name+'</div>';
@@ -591,7 +628,7 @@ function rProg(c){
       const bd=document.createElement('div');bd.innerHTML='<div class="sec-hdr">'+block.name+'</div>';
       block.exercises.forEach(ex=>{
         const er=document.createElement('div');er.className='prog-ex';
-        er.appendChild(mkThumb(ex.id,true));
+        er.appendChild(mkThumb(ex.id,true,ex.name));
         const info=document.createElement('div');info.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+ex.name+'</div><div style="font-size:11px;color:var(--text-muted);">'+ex.sets+' sets · '+ex.reps+'</div>';
         const wr=document.createElement('div');wr.style.cssText='font-size:12px;color:var(--text-muted);text-align:right;';wr.textContent=ex.wr;
         er.appendChild(info);er.appendChild(wr);bd.appendChild(er);
