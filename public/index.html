@@ -208,7 +208,7 @@ PLAN0.C={name:'Workout C — full body',blocks:[
     {id:'c_carry',name:'Farmer\'s carry (both hands)',sets:2,reps:'30 steps',wr:'8–12kg each',dw:'8',u:'kg'}]}
 ]};
 
-const WARMUP=['Treadmill','Exercise bike','Brisk walk','Dynamic stretches','Jump rope','Rowing machine'];
+const WARMUP=['Treadmill','Exercise bike','Brisk walk','Rowing machine'];
 const STRETCHES={
   A:['Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 30 sec each side','Neck side stretch — 20 sec each side','Seated thoracic rotation — 10 reps each side','Child\'s pose — 45 sec','Cat-cow — 10 slow reps'],
   B:['Hip flexor lunge stretch — 45 sec each side','Standing quad stretch — 30 sec each side','Seated hamstring stretch — 45 sec each side','Figure-4 glute stretch — 45 sec each side','Calf stretch against wall — 30 sec each side','Lying butterfly stretch — 45 sec'],
@@ -406,7 +406,13 @@ function rToday(c){
   const cdc=document.createElement('div');cdc.className='card';
   cdc.innerHTML='<div class="card-title">Cool-down & stretching <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim);">5–10 min</span></div>';
   const sl=document.createElement('ul');sl.className='stretch-list';
-  (STRETCHES[wk]||[]).forEach(s=>{const li=document.createElement('li');li.textContent=s;sl.appendChild(li);});
+  (STRETCHES[wk]||[]).forEach(s=>{
+    const li=document.createElement('li');
+    const name=s.split(' — ')[0];
+    const ytUrl='https://www.youtube.com/results?search_query='+encodeURIComponent(name+' stretch how to');
+    li.innerHTML='<span style="flex:1;">'+s+'</span><a href="'+ytUrl+'" target="_blank" rel="noopener" style="flex-shrink:0;background:#cc0000;border-radius:4px;padding:1px 6px;font-size:9px;color:#fff;font-weight:700;text-decoration:none;line-height:1.8;">YT</a>';
+    sl.appendChild(li);
+  });
   cdc.appendChild(sl);c.appendChild(cdc);
 
   const br=document.createElement('div');br.className='btn-row';
