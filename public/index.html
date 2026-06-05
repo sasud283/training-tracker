@@ -499,7 +499,7 @@ async function aiReview(){
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
   const feedback=st.programmeFeedback?'\n\nUser feedback about the programme:\n'+st.programmeFeedback:'';
-  const p='Review last '+sess.length+' sessions and suggest 1-3 programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"2-4 sentence friendly explanation","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"name":"new name","sets":3,"reps":"new reps","wr":"new weight range","dw":"6","u":"kg"},"reason":"why"}]}\nCopy workout letter, blockName, exerciseId and exerciseName EXACTLY as shown in the plan above. Only include fields in updates that are actually changing.';
+  const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg"},"reason":"Specific sentence: what is changing (e.g. sets 3→4, weight 6→8kg) and exactly why based on session data or user feedback (e.g. consistently rated easy, user asked for more shoulder work)"}]}\nIMPORTANT: Copy workout letter (A, B or C), blockName, exerciseId and exerciseName EXACTLY as shown in the plan above — do not paraphrase or abbreviate. Only include fields in updates that are actually changing. The reason field must mention both WHAT is changing and WHY (referencing specific session feels, pain notes, or user feedback).';
   const reviewSys=SYS+'\n\nCRITICAL: When asked to return JSON, return ONLY raw JSON with absolutely no text, explanation, or markdown outside the JSON object.';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
@@ -657,9 +657,35 @@ function rProg(c){
   if(st.pendingAi){
     const sc=document.createElement('div');sc.className='card';sc.style.borderColor='#fde68a';
     sc.innerHTML='<div class="card-title" style="color:#854F0B;">AI coach suggestion</div>';
-    const ab=document.createElement('div');ab.className='ai-box';ab.textContent=st.pendingAi.text;sc.appendChild(ab);
+    // Summary overview
+    const ab=document.createElement('div');ab.className='ai-box';ab.style.marginBottom='0.75rem';ab.textContent=st.pendingAi.text;sc.appendChild(ab);
+    // Per-change breakdown
+    const chs=st.pendingAi.changes||[];
+    if(chs.length){
+      const chList=document.createElement('div');chList.style.cssText='display:flex;flex-direction:column;gap:8px;margin-bottom:0.75rem;';
+      chs.forEach(ch=>{
+        const row=document.createElement('div');row.style.cssText='background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;';
+        // Header: workout badge + exercise name
+        const hdr=document.createElement('div');hdr.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px;';
+        const badge=document.createElement('span');badge.style.cssText='font-size:10px;font-weight:700;background:#854F0B;color:#fff;border-radius:4px;padding:1px 6px;letter-spacing:0.04em;';badge.textContent='Workout '+(ch.workout||'');
+        const exName=document.createElement('span');exName.style.cssText='font-size:13px;font-weight:600;';exName.textContent=ch.exerciseName||'';
+        hdr.appendChild(badge);hdr.appendChild(exName);row.appendChild(hdr);
+        // What's changing
+        const upd=ch.updates||{};
+        const updParts=[];
+        if(upd.sets)updParts.push('Sets: '+upd.sets);
+        if(upd.reps)updParts.push('Reps: '+upd.reps);
+        if(upd.wr)updParts.push('Weight: '+upd.wr);
+        if(upd.name)updParts.push('Renamed to: '+upd.name);
+        if(updParts.length){const updDiv=document.createElement('div');updDiv.style.cssText='font-size:12px;color:#92400E;margin-bottom:4px;';updDiv.textContent='→ '+updParts.join(' · ');row.appendChild(updDiv);}
+        // Reason
+        if(ch.reason){const reasonDiv=document.createElement('div');reasonDiv.style.cssText='font-size:12px;color:#666;line-height:1.5;';reasonDiv.textContent=ch.reason;row.appendChild(reasonDiv);}
+        chList.appendChild(row);
+      });
+      sc.appendChild(chList);
+    }
     const br=document.createElement('div');br.className='btn-row';
-    const ap=document.createElement('button');ap.className='btn primary';ap.textContent='Apply & save change';
+    const ap=document.createElement('button');ap.className='btn primary';ap.textContent='Apply & save changes';
     ap.onclick=async()=>{
       ap.textContent='Applying changes...';ap.disabled=true;
       await applyAiPlanChange(st.pendingAi.text);
