@@ -515,6 +515,7 @@ async function aiReview(){
   }catch(e){}
 }
 
+let recentlyChangedIds=new Set();
 async function applyAiPlanChange(text){
   const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
   const STOP=new Set(['a','an','the','with','and','or','for','to','of','in','on','at','db','dumbbell','dumbbells','barbell','kg','lb','lbs','sets','reps','each','side','sides','both','hands']);
@@ -524,11 +525,12 @@ async function applyAiPlanChange(text){
   const blockTail=s=>s.replace(/^[^:]+:\s*/,'');
   const changes=st.pendingAi?.changes||[];
   let applied=0;
+  recentlyChangedIds=new Set();
   changes.forEach(ch=>{
     const wkKey=normWk(ch.workout);
     const workout=st.plan[wkKey];if(!workout)return;
     workout.blocks.forEach(block=>{
-      const blockMatch=norm(block.name)===norm(ch.blockName)||wordOverlap(block.name,ch.blockName)>=2||norm(blockTail(block.name))===norm(blockTail(ch.blockName||''))||wordOverlap(blockTail(block.name),blockTail(ch.blockName||''))>=1;
+      const blockMatch=norm(block.name)===norm(ch.blockName)||wordOverlap(block.name,ch.blockName)>=2||norm(blockTail(block.name))===norm(blockTail(ch.blockName||''))||wordOverlap(blockTail(block.name),blockTail(ch.blockName||''))>=2;
       if(!blockMatch)return;
       block.exercises.forEach(ex=>{
         const idMatch=ex.id&&ch.exerciseId&&ex.id===ch.exerciseId;
@@ -537,15 +539,22 @@ async function applyAiPlanChange(text){
         const allowed=['name','sets','reps','wr','dw','u'];
         const updates=ch.updates||{};
         allowed.forEach(k=>{if(k in updates)ex[k]=updates[k];});
+        recentlyChangedIds.add(ex.id);
         applied++;
         st.planChanges.push({date:new Date().toISOString(),text:ch.reason||ch.summary||'Plan updated',source:'AI coach'});
       });
     });
   });
   st.pendingAi=null;
+  // Reset today's session data so Today tab picks up updated default weights
+  sd={};
+  // Switch to programme tab so user sees the updated plan
+  tab='programme';
   await sv(st);render();
-  toast(applied?'Plan updated — '+applied+' exercise'+(applied>1?'s':'')+' changed':'No matching exercises found — change logged');
+  toast(applied?'✓ Plan updated — '+applied+' exercise'+(applied>1?'s':'')+' changed. See highlighted exercises below.':'No matching exercises found — change logged');
   if(!applied&&text){st.planChanges.push({date:new Date().toISOString(),text,source:'AI coach'});await sv(st);}
+  // Clear highlights after 8 seconds
+  if(applied){setTimeout(()=>{recentlyChangedIds=new Set();render();},8000);}
 }
 
 /* ── PROGRESS TAB ── */
@@ -724,9 +733,13 @@ function rProg(c){
     pd.blocks.forEach(block=>{
       const bd=document.createElement('div');bd.innerHTML='<div class="sec-hdr">'+block.name+'</div>';
       block.exercises.forEach(ex=>{
+        const changed=recentlyChangedIds.has(ex.id);
         const er=document.createElement('div');er.className='prog-ex';
+        if(changed)er.style.cssText='background:#f0fdf4;border:1.5px solid #22c55e;border-radius:8px;padding:8px;margin-bottom:4px;';
         er.appendChild(mkThumb(ex.id,true,ex.name));
-        const info=document.createElement('div');info.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+ex.name+'</div><div style="font-size:11px;color:var(--text-muted);">'+ex.sets+' sets · '+ex.reps+'</div>';
+        const info=document.createElement('div');
+        const badge=changed?'<span style="display:inline-block;background:#22c55e;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;">✓ UPDATED</span>':'';
+        info.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+ex.name+badge+'</div><div style="font-size:11px;color:var(--text-muted);">'+ex.sets+' sets · '+ex.reps+'</div>';
         const wr=document.createElement('div');wr.style.cssText='font-size:12px;color:var(--text-muted);text-align:right;';wr.textContent=ex.wr;
         er.appendChild(info);er.appendChild(wr);bd.appendChild(er);
       });
