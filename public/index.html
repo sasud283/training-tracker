@@ -499,7 +499,7 @@ async function aiReview(){
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
   const feedback=st.programmeFeedback?'\n\nUser feedback about the programme:\n'+st.programmeFeedback:'';
-  const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg"},"reason":"Specific sentence: what is changing (e.g. sets 3→4, weight 6→8kg) and exactly why based on session data or user feedback (e.g. consistently rated easy, user asked for more shoulder work)"}]}\nIMPORTANT: Copy workout letter (A, B or C), blockName, exerciseId and exerciseName EXACTLY as shown in the plan above — do not paraphrase or abbreviate. Only include fields in updates that are actually changing. The reason field must mention both WHAT is changing and WHY (referencing specific session feels, pain notes, or user feedback).';
+  const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg","name":"New exercise name if replacing"},"reason":"Specific sentence: what is changing and exactly why based on session data or user feedback"}]}\nCRITICAL RULES:\n1. exerciseId and exerciseName MUST be copied EXACTLY from the plan above — they identify the EXISTING exercise to modify. NEVER put a new exercise name in exerciseName.\n2. To replace an exercise with a different one: keep the old exerciseId and exerciseName as identifiers, put the new exercise name in updates.name.\n3. workout must be the single letter A, B or C — never "Workout A".\n4. blockName must be copied EXACTLY as shown in the plan above.\n5. Only include fields in updates that are actually changing.\n6. The reason field must mention both WHAT is changing and WHY (referencing session feels, pain notes, or user feedback).';
   const reviewSys=SYS+'\n\nCRITICAL: When asked to return JSON, return ONLY raw JSON with absolutely no text, explanation, or markdown outside the JSON object.';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
@@ -529,21 +529,35 @@ async function applyAiPlanChange(text){
   changes.forEach(ch=>{
     const wkKey=normWk(ch.workout);
     const workout=st.plan[wkKey];if(!workout)return;
+    const applyToEx=(ex)=>{
+      const allowed=['name','sets','reps','wr','dw','u'];
+      const updates=ch.updates||{};
+      allowed.forEach(k=>{if(k in updates)ex[k]=updates[k];});
+      recentlyChangedIds.add(ex.id);
+      applied++;
+      st.planChanges.push({date:new Date().toISOString(),text:ch.reason||ch.summary||'Plan updated',source:'AI coach'});
+    };
+    let matchedByBlock=false;
     workout.blocks.forEach(block=>{
       const blockMatch=norm(block.name)===norm(ch.blockName)||wordOverlap(block.name,ch.blockName)>=2||norm(blockTail(block.name))===norm(blockTail(ch.blockName||''))||wordOverlap(blockTail(block.name),blockTail(ch.blockName||''))>=2;
       if(!blockMatch)return;
       block.exercises.forEach(ex=>{
+        // idMatch takes absolute priority — exercise ID is unambiguous
         const idMatch=ex.id&&ch.exerciseId&&ex.id===ch.exerciseId;
+        // nameMatch: compare against CURRENT exercise name (not the new name the AI wants to set)
         const nameMatch=norm(ex.name)===norm(ch.exerciseName)||wordOverlap(ex.name,ch.exerciseName)>=2;
         if(!idMatch&&!nameMatch)return;
-        const allowed=['name','sets','reps','wr','dw','u'];
-        const updates=ch.updates||{};
-        allowed.forEach(k=>{if(k in updates)ex[k]=updates[k];});
-        recentlyChangedIds.add(ex.id);
-        applied++;
-        st.planChanges.push({date:new Date().toISOString(),text:ch.reason||ch.summary||'Plan updated',source:'AI coach'});
+        applyToEx(ex);matchedByBlock=true;
       });
     });
+    // Fallback: if block name didn't match but exerciseId was given, search all blocks by ID
+    if(!matchedByBlock&&ch.exerciseId){
+      workout.blocks.forEach(block=>{
+        block.exercises.forEach(ex=>{
+          if(ex.id===ch.exerciseId){applyToEx(ex);matchedByBlock=true;}
+        });
+      });
+    }
   });
   st.pendingAi=null;
   // Reset today's session data so Today tab picks up updated default weights
