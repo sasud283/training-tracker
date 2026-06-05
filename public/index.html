@@ -96,6 +96,13 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 #save-warning{width:100%;background:#FEF9C3;color:#854d0e;border:1px solid #fde68a;border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;margin-top:6px;}
 .wellness-label{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;margin-top:0.75rem;}
 .wellness-label:first-of-type{margin-top:0;}
+.wu-btn{padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:500;background:var(--white);color:var(--text-muted);font-family:inherit;transition:all 0.15s;}
+.wu-btn:hover{border-color:var(--text);color:var(--text);}
+.wu-btn.on{background:#DCFCE7;color:#15803d;border-color:#86efac;}
+.stretch-list{list-style:none;margin-top:6px;}
+.stretch-list li{font-size:12px;color:var(--text-muted);padding:5px 0;border-bottom:1px solid var(--border-light);display:flex;gap:8px;align-items:baseline;}
+.stretch-list li:last-child{border-bottom:none;}
+.stretch-list li::before{content:'→';color:var(--text-dim);flex-shrink:0;font-size:11px;}
 .phase-btns,.energy-btns{display:flex;gap:6px;flex-wrap:wrap;}
 .phase-btn,.energy-btn{padding:5px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;background:var(--white);color:var(--text-muted);font-family:inherit;transition:all 0.15s;}
 .phase-btn:hover,.energy-btn:hover{border-color:var(--text);color:var(--text);}
@@ -201,6 +208,13 @@ PLAN0.C={name:'Workout C — full body',blocks:[
     {id:'c_carry',name:'Farmer\'s carry (both hands)',sets:2,reps:'30 steps',wr:'8–12kg each',dw:'8',u:'kg'}]}
 ]};
 
+const WARMUP=['Treadmill','Exercise bike','Brisk walk','Dynamic stretches','Jump rope','Rowing machine'];
+const STRETCHES={
+  A:['Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 30 sec each side','Neck side stretch — 20 sec each side','Seated thoracic rotation — 10 reps each side','Child\'s pose — 45 sec','Cat-cow — 10 slow reps'],
+  B:['Hip flexor lunge stretch — 45 sec each side','Standing quad stretch — 30 sec each side','Seated hamstring stretch — 45 sec each side','Figure-4 glute stretch — 45 sec each side','Calf stretch against wall — 30 sec each side','Lying butterfly stretch — 45 sec'],
+  C:['Hip flexor lunge stretch — 30 sec each side','Hamstring stretch — 30 sec each side','Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 20 sec each side','Glute stretch (figure-4) — 30 sec each side','Child\'s pose — 45 sec']
+};
+
 const SYS=`You are an expert personal trainer and nutrition coach AI for a 43-year-old woman.
 Goals: lose weight to reach her goal (she sets this herself in the app), reduce tummy, improve posture, balance proportions (34F bra — through exercise not surgery).
 Knee issues: knee-safe exercises only, build knee strength not aggravate.
@@ -214,7 +228,7 @@ Energy level guidance: if feeling weak — cut sets or load by ~20–30%, focus 
 Always factor in any stated weaknesses (e.g. tight hips, low motivation) with targeted modifications.
 Be warm, specific, practical, encouraging. Never judge food choices harshly.`;
 
-const EMPTY_ST=()=>({sessions:[],weights:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:8,planChanges:[],pendingAi:null,goalWeight:null});
+const EMPTY_ST=()=>({sessions:[],weights:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:8,planChanges:[],pendingAi:null,goalWeight:null,programmeFeedback:''});
 
 async function ld(){
   try{
@@ -222,6 +236,7 @@ async function ld(){
     if(raw){
       const p=JSON.parse(raw);
       if(!p.goalWeight)p.goalWeight=null;
+      if(p.programmeFeedback===undefined)p.programmeFeedback='';
       // v6 migration: reset plan to fresh exercises (changed May 2026)
       if(!p.planVersion||p.planVersion<6){p.plan=JSON.parse(JSON.stringify(PLAN0));p.planVersion=6;}
       if(p.planVersion<7){if(!p.plan.C)p.plan.C=JSON.parse(JSON.stringify(PLAN0.C));p.planVersion=7;}
@@ -239,7 +254,7 @@ async function sv(s){
 let st=EMPTY_ST();
 let tab='today';
 let wk='A';
-let sd={},pain=[],notes='',cw='',air='',ail=false,ci={},savedFlash=false;
+let sd={},pain=[],notes='',cw='',warmup='',air='',ail=false,ci={},savedFlash=false;
 let cyclePhase=null,energyLevel=null;
 
 
@@ -343,6 +358,19 @@ function rToday(c){
     btn.onclick=()=>{wk=t;initSd(t);render();};tg.appendChild(btn);
   });
   wkc.appendChild(tg);c.appendChild(wkc);
+
+  // Warm-up card
+  const wuc=document.createElement('div');wuc.className='card';
+  wuc.innerHTML='<div class="card-title">Warm-up <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim);">5–10 min before you start</span></div>';
+  const wuRow=document.createElement('div');wuRow.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+  WARMUP.forEach(opt=>{
+    const btn=document.createElement('button');btn.className='wu-btn'+(warmup===opt?' on':'');
+    btn.textContent=opt;
+    btn.onclick=()=>{warmup=warmup===opt?'':opt;render();};
+    wuRow.appendChild(btn);
+  });
+  wuc.appendChild(wuRow);c.appendChild(wuc);
+
   if(!Object.keys(sd).length)initSd(wk);
 
   st.plan[wk].blocks.forEach(block=>{
@@ -374,6 +402,13 @@ function rToday(c){
   const ta=document.createElement('textarea');ta.className='notes-in';ta.rows=2;ta.placeholder='How did it go? Anything to note...';ta.value=notes;
   ta.oninput=e=>{notes=e.target.value;};nc.appendChild(ta);c.appendChild(nc);
 
+  // Cool-down & stretching card
+  const cdc=document.createElement('div');cdc.className='card';
+  cdc.innerHTML='<div class="card-title">Cool-down & stretching <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim);">5–10 min</span></div>';
+  const sl=document.createElement('ul');sl.className='stretch-list';
+  (STRETCHES[wk]||[]).forEach(s=>{const li=document.createElement('li');li.textContent=s;sl.appendChild(li);});
+  cdc.appendChild(sl);c.appendChild(cdc);
+
   const br=document.createElement('div');br.className='btn-row';
   const sb=document.createElement('button');sb.className='btn primary';
   const today2=new Date().toISOString().slice(0,10);
@@ -389,8 +424,8 @@ function rToday(c){
     br.appendChild(sb);br.appendChild(warn);
     // wire save-anyway after DOM insertion
     setTimeout(()=>{const btn=document.getElementById('save-anyway');if(btn)btn.onclick=async()=>{
-      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null};
-      st.sessions.push(sess);await sv(st);notes='';cw='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
+      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null};
+      st.sessions.push(sess);await sv(st);notes='';cw='';warmup='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
     };},50);
   } else {
     br.appendChild(sb);
@@ -423,11 +458,11 @@ async function saveSess(){
     if(warn){warn.style.display='block';return;}
     return;
   }
-  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null};
+  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null};
   if(cw){const w=parseFloat(cw);const idx=st.weights.findIndex(e=>e.date.slice(0,10)===today);if(idx>=0)st.weights[idx].weight=w;else st.weights.push({date:sess.date,weight:w});}
   st.sessions.push(sess);
   const saveResult=await sv(st);
-  notes='';cw='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;
+  notes='';cw='';warmup='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;
   if(st.sessions.length%3===0)aiReview();
   // Show confirmation in the save button area
   savedFlash=true;render();
@@ -450,7 +485,8 @@ async function aiReview(){
   const planSummary=Object.entries(st.plan).map(([wk,pd])=>
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
-  const p='Review last '+sess.length+' sessions and suggest 1-3 programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object (no markdown):\n{"summary":"2-4 sentence friendly explanation of your suggestions","changes":[{"workout":"A, B or C","blockName":"copy block name exactly from plan above","exerciseId":"copy id exactly from plan above","exerciseName":"copy exercise name exactly from plan above","updates":{"name":"new name if changing","sets":3,"reps":"new reps","wr":"new weight range","dw":"new default weight","u":"kg or empty"},"reason":"why this change"}]}\nOnly include fields in updates that are actually changing. Copy blockName, exerciseId and exerciseName character-for-character from the plan above.';
+  const feedback=st.programmeFeedback?'\n\nAdditional feedback from the user about the programme:\n'+st.programmeFeedback:'';
+  const p='Review last '+sess.length+' sessions and suggest 1-3 programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object (no markdown):\n{"summary":"2-4 sentence friendly explanation of your suggestions","changes":[{"workout":"A, B or C","blockName":"copy block name exactly from plan above","exerciseId":"copy id exactly from plan above","exerciseName":"copy exercise name exactly from plan above","updates":{"name":"new name if changing","sets":3,"reps":"new reps","wr":"new weight range","dw":"new default weight","u":"kg or empty"},"reason":"why this change"}]}\nOnly include fields in updates that are actually changing. Copy blockName, exerciseId and exerciseName character-for-character from the plan above.';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:SYS,messages:[{role:'user',content:p}]})});
     const d=await r.json();
@@ -607,6 +643,22 @@ function rProg(c){
     dm.onclick=async()=>{st.pendingAi=null;await sv(st);render();};
     br.appendChild(ap);br.appendChild(dm);sc.appendChild(br);c.appendChild(sc);
   }
+  // Programme feedback card
+  const fc=document.createElement('div');fc.className='card';
+  fc.innerHTML='<div class="card-title">Your feedback for the coach</div><div style="font-size:13px;color:#666;margin-bottom:0.75rem;line-height:1.6;">Tell the AI what\'s working, what isn\'t, or anything you\'d like changed. This will be included in your next review.</div>';
+  const fta=document.createElement('textarea');fta.className='notes-in';fta.rows=3;
+  fta.placeholder='e.g. The curtsy lunges are too hard on my knees, I\'d like more shoulder work, the finisher always wipes me out...';
+  fta.value=st.programmeFeedback||'';
+  fta.oninput=e=>{st.programmeFeedback=e.target.value;};
+  const fbRow=document.createElement('div');fbRow.style.cssText='display:flex;gap:8px;margin-top:0.75rem;align-items:center;';
+  const fbSave=document.createElement('button');fbSave.className='btn primary';fbSave.style.cssText='padding:6px 14px;font-size:13px;';fbSave.textContent='Save feedback';
+  fbSave.onclick=async()=>{await sv(st);fbSave.textContent='✓ Saved';fbSave.style.background='#1D9E75';fbSave.style.borderColor='#1D9E75';setTimeout(()=>{fbSave.textContent='Save feedback';fbSave.style.background='';fbSave.style.borderColor='';},2000);};
+  const fbClear=document.createElement('button');fbClear.className='btn';fbClear.style.cssText='padding:6px 14px;font-size:13px;';fbClear.textContent='Clear';
+  fbClear.onclick=async()=>{st.programmeFeedback='';fta.value='';await sv(st);};
+  fbRow.appendChild(fbSave);fbRow.appendChild(fbClear);
+  if(st.programmeFeedback){const hint=document.createElement('span');hint.style.cssText='font-size:11px;color:#15803d;';hint.textContent='✓ Feedback saved — will be included in next review';fbRow.appendChild(hint);}
+  fc.appendChild(fta);fc.appendChild(fbRow);c.appendChild(fc);
+
   const rc=document.createElement('div');rc.className='card';
   rc.innerHTML='<div class="card-title">AI programme review</div><div style="font-size:13px;color:#666;margin-bottom:0.75rem;line-height:1.6;">Personalised adaptations based on your session history. Auto-triggers every 3 sessions.</div>';
   const rb=document.createElement('button');rb.className='btn';rb.textContent=ail?'Reviewing...':'Request review now ↗';rb.disabled=ail||st.sessions.length<1;
