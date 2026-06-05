@@ -254,7 +254,7 @@ async function sv(s){
 let st=EMPTY_ST();
 let tab='today';
 let wk='A';
-let sd={},pain=[],notes='',cw='',warmup='',air='',ail=false,ci={},savedFlash=false;
+let sd={},pain=[],notes='',cw='',warmup='',warmupTime='',air='',ail=false,ci={},savedFlash=false;
 let cyclePhase=null,energyLevel=null;
 
 
@@ -369,7 +369,14 @@ function rToday(c){
     btn.onclick=()=>{warmup=warmup===opt?'':opt;render();};
     wuRow.appendChild(btn);
   });
-  wuc.appendChild(wuRow);c.appendChild(wuc);
+  wuc.appendChild(wuRow);
+  const wuTimeRow=document.createElement('div');wuTimeRow.style.cssText='display:flex;align-items:center;gap:8px;margin-top:0.75rem;';
+  const wuLbl=document.createElement('span');wuLbl.style.cssText='font-size:12px;color:var(--text-muted);';wuLbl.textContent='Duration';
+  const wuIn=document.createElement('input');wuIn.type='number';wuIn.className='wt-in';wuIn.style.cssText='width:70px;';wuIn.placeholder='10';wuIn.min='1';wuIn.max='60';wuIn.value=warmupTime;
+  wuIn.oninput=e=>{warmupTime=e.target.value;};
+  const wuMin=document.createElement('span');wuMin.style.cssText='font-size:12px;color:var(--text-muted);';wuMin.textContent='min';
+  wuTimeRow.appendChild(wuLbl);wuTimeRow.appendChild(wuIn);wuTimeRow.appendChild(wuMin);
+  wuc.appendChild(wuTimeRow);c.appendChild(wuc);
 
   if(!Object.keys(sd).length)initSd(wk);
 
@@ -430,8 +437,8 @@ function rToday(c){
     br.appendChild(sb);br.appendChild(warn);
     // wire save-anyway after DOM insertion
     setTimeout(()=>{const btn=document.getElementById('save-anyway');if(btn)btn.onclick=async()=>{
-      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null};
-      st.sessions.push(sess);await sv(st);notes='';cw='';warmup='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
+      const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null,warmupTime:warmupTime?parseInt(warmupTime):null};
+      st.sessions.push(sess);await sv(st);notes='';cw='';warmup='';warmupTime='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;savedFlash=true;render();setTimeout(()=>{savedFlash=false;render();},3000);
     };},50);
   } else {
     br.appendChild(sb);
@@ -464,11 +471,11 @@ async function saveSess(){
     if(warn){warn.style.display='block';return;}
     return;
   }
-  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null};
+  const sess={id:Date.now(),date:new Date().toISOString(),type:wk,exercises:JSON.parse(JSON.stringify(sd)),pain:[...pain],notes,weight:cw?parseFloat(cw):null,cyclePhase:cyclePhase||null,energyLevel:energyLevel||null,warmup:warmup||null,warmupTime:warmupTime?parseInt(warmupTime):null};
   if(cw){const w=parseFloat(cw);const idx=st.weights.findIndex(e=>e.date.slice(0,10)===today);if(idx>=0)st.weights[idx].weight=w;else st.weights.push({date:sess.date,weight:w});}
   st.sessions.push(sess);
   const saveResult=await sv(st);
-  notes='';cw='';warmup='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;
+  notes='';cw='';warmup='';warmupTime='';pain=[];sd={};air='';cyclePhase=null;energyLevel=null;
   if(st.sessions.length%3===0)aiReview();
   // Show confirmation in the save button area
   savedFlash=true;render();
