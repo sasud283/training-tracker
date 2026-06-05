@@ -456,25 +456,28 @@ async function aiReview(){
 }
 
 async function applyAiPlanChange(text){
-  // Ask Claude to parse its own suggestion into structured JSON changes
   const planSummary=Object.entries(st.plan).map(([wk,pd])=>
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
-  const prompt=`You previously suggested these programme changes:\n${text}\n\nCurrent plan exercises:\n${planSummary}\n\nReturn ONLY a valid JSON object (no markdown, no explanation):\n{"changes":[{"workout":"A or B","blockName":"exact block name","exerciseId":"exact id from plan","updates":{"name":"new name","sets":3,"reps":"new reps","wr":"new weight range","dw":"default weight","u":"kg or empty"},"summary":"one-line description"}]}\nOnly include fields that are actually changing. Match exerciseId and blockName exactly.`;
+  const prompt=`You previously suggested these programme changes:\n${text}\n\nCurrent plan exercises (workouts A, B and C):\n${planSummary}\n\nReturn ONLY a valid JSON object (no markdown, no explanation):\n{"changes":[{"workout":"A, B, or C","blockName":"exact block name from plan above","exerciseId":"exact id from plan above","exerciseName":"exact exercise name from plan above","updates":{"name":"new name","sets":3,"reps":"new reps","wr":"new weight range","dw":"default weight","u":"kg or empty"},"summary":"one-line description of change"}]}\nOnly include fields that are actually changing. Copy blockName, exerciseId and exerciseName exactly as they appear in the plan above.`;
+  const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:'You are a JSON generator. Return only valid JSON, no markdown code fences.',messages:[{role:'user',content:prompt}]})});
     const d=await r.json();
     const raw=d.content?.find(b=>b.type==='text')?.text||'';
-    // Strip any accidental markdown fences
     const jsonStr=raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     const parsed=JSON.parse(jsonStr);
     let applied=0;
     (parsed.changes||[]).forEach(ch=>{
       const workout=st.plan[ch.workout];if(!workout)return;
       workout.blocks.forEach(block=>{
-        if(block.name!==ch.blockName)return;
+        // Match block name: exact first, then normalised fallback
+        if(block.name!==ch.blockName&&norm(block.name)!==norm(ch.blockName))return;
         block.exercises.forEach(ex=>{
-          if(ex.id!==ch.exerciseId)return;
+          // Match exercise: by ID first, then by normalised name
+          const idMatch=ex.id===ch.exerciseId;
+          const nameMatch=norm(ex.name)===norm(ch.exerciseName);
+          if(!idMatch&&!nameMatch)return;
           Object.assign(ex,ch.updates);applied++;
           st.planChanges.push({date:new Date().toISOString(),text:ch.summary||'Plan updated',source:'AI coach'});
         });
@@ -485,7 +488,6 @@ async function applyAiPlanChange(text){
     toast(applied?'Plan updated — '+applied+' exercise'+(applied>1?'s':'')+' changed':'No matching exercises found — change logged');
     if(!applied){st.planChanges.push({date:new Date().toISOString(),text:text,source:'AI coach'});await sv(st);}
   }catch(e){
-    // Fallback: log the suggestion in the change log and clear pending
     st.planChanges.push({date:new Date().toISOString(),text:text,source:'AI coach'});
     st.pendingAi=null;
     await sv(st);render();
