@@ -498,16 +498,18 @@ async function aiReview(){
   const planSummary=Object.entries(st.plan).map(([wk,pd])=>
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
-  const feedback=st.programmeFeedback?'\n\nAdditional feedback from the user about the programme:\n'+st.programmeFeedback:'';
-  const p='Review last '+sess.length+' sessions and suggest 1-3 programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object (no markdown):\n{"summary":"2-4 sentence friendly explanation of your suggestions","changes":[{"workout":"A, B or C","blockName":"copy block name exactly from plan above","exerciseId":"copy id exactly from plan above","exerciseName":"copy exercise name exactly from plan above","updates":{"name":"new name if changing","sets":3,"reps":"new reps","wr":"new weight range","dw":"new default weight","u":"kg or empty"},"reason":"why this change"}]}\nOnly include fields in updates that are actually changing. Copy blockName, exerciseId and exerciseName character-for-character from the plan above.';
+  const feedback=st.programmeFeedback?'\n\nUser feedback about the programme:\n'+st.programmeFeedback:'';
+  const p='Review last '+sess.length+' sessions and suggest 1-3 programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"2-4 sentence friendly explanation","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"name":"new name","sets":3,"reps":"new reps","wr":"new weight range","dw":"6","u":"kg"},"reason":"why"}]}\nCopy workout letter, blockName, exerciseId and exerciseName EXACTLY as shown in the plan above. Only include fields in updates that are actually changing.';
+  const reviewSys=SYS+'\n\nCRITICAL: When asked to return JSON, return ONLY raw JSON with absolutely no text, explanation, or markdown outside the JSON object.';
   try{
-    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:SYS,messages:[{role:'user',content:p}]})});
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
     const d=await r.json();
     const raw=d.content?.find(b=>b.type==='text')?.text||'';
     const jsonStr=raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     const parsed=JSON.parse(jsonStr);
     if(parsed.summary||parsed.changes){
       st.pendingAi={date:new Date().toISOString(),text:parsed.summary||'Programme changes suggested',changes:parsed.changes||[]};
+      st.programmeFeedback='';
       await sv(st);render();
     }
   }catch(e){}
@@ -515,17 +517,27 @@ async function aiReview(){
 
 async function applyAiPlanChange(text){
   const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
+  const STOP=new Set(['a','an','the','with','and','or','for','to','of','in','on','at','db','dumbbell','dumbbells','barbell','kg','lb','lbs','sets','reps','each','side','sides','both','hands']);
+  const sigWords=s=>norm(s).split(' ').filter(w=>w.length>1&&!STOP.has(w));
+  const wordOverlap=(a,b)=>{const wa=new Set(sigWords(a)),wb=sigWords(b);return wb.filter(w=>wa.has(w)).length;};
+  const normWk=s=>(s||'').replace(/workout\s*/i,'').trim().toUpperCase();
+  const blockTail=s=>s.replace(/^[^:]+:\s*/,'');
   const changes=st.pendingAi?.changes||[];
   let applied=0;
   changes.forEach(ch=>{
-    const workout=st.plan[ch.workout];if(!workout)return;
+    const wkKey=normWk(ch.workout);
+    const workout=st.plan[wkKey];if(!workout)return;
     workout.blocks.forEach(block=>{
-      if(block.name!==ch.blockName&&norm(block.name)!==norm(ch.blockName))return;
+      const blockMatch=norm(block.name)===norm(ch.blockName)||wordOverlap(block.name,ch.blockName)>=2||norm(blockTail(block.name))===norm(blockTail(ch.blockName||''))||wordOverlap(blockTail(block.name),blockTail(ch.blockName||''))>=1;
+      if(!blockMatch)return;
       block.exercises.forEach(ex=>{
-        const idMatch=ex.id===ch.exerciseId;
-        const nameMatch=norm(ex.name)===norm(ch.exerciseName);
+        const idMatch=ex.id&&ch.exerciseId&&ex.id===ch.exerciseId;
+        const nameMatch=norm(ex.name)===norm(ch.exerciseName)||wordOverlap(ex.name,ch.exerciseName)>=2;
         if(!idMatch&&!nameMatch)return;
-        Object.assign(ex,ch.updates);applied++;
+        const allowed=['name','sets','reps','wr','dw','u'];
+        const updates=ch.updates||{};
+        allowed.forEach(k=>{if(k in updates)ex[k]=updates[k];});
+        applied++;
         st.planChanges.push({date:new Date().toISOString(),text:ch.reason||ch.summary||'Plan updated',source:'AI coach'});
       });
     });
