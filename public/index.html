@@ -487,8 +487,10 @@ async function askAi(){
   const wellness=[cyclePhase?'Cycle phase: '+cyclePhase:'',energyLevel?'Energy: '+energyLevel:''].filter(Boolean).join('. ');
   const p='Workout '+wk+'. '+(wellness?wellness+'. ':'')+' Pain: '+(pain.join(',')||'none')+'. Data: '+JSON.stringify(sd)+'. Notes: '+(notes||'none')+'. Recent: '+st.sessions.slice(-4).map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')).join(' | ')+'. Give 3-5 sentence personalised coaching response. If cycle phase, energy level or weaknesses are provided, give specific adjustments for today\'s session accordingly.';
   try{
-    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:[{role:'user',content:p}]})});
-    const d=await r.json();air=d.content?.find(b=>b.type==='text')?.text||'No response.';
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:SYS,messages:[{role:'user',content:p}]})});
+    const d=await r.json();
+    if(d.error){air='AI error: '+d.error.message;}
+    else{air=d.content?.find(b=>b.type==='text')?.text||'No response received.';}
   }catch(e){air='Could not connect. Please try again.';}
   ail=false;render();
 }
@@ -502,9 +504,11 @@ async function aiReview(){
   const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg","name":"New exercise name if replacing"},"reason":"Specific sentence: what is changing and exactly why based on session data or user feedback"}]}\nCRITICAL RULES:\n1. exerciseId and exerciseName MUST be copied EXACTLY from the plan above — they identify the EXISTING exercise to modify. NEVER put a new exercise name in exerciseName.\n2. To replace an exercise with a different one: keep the old exerciseId and exerciseName as identifiers, put the new exercise name in updates.name.\n3. workout must be the single letter A, B or C — never "Workout A".\n4. blockName must be copied EXACTLY as shown in the plan above.\n5. Only include fields in updates that are actually changing.\n6. The reason field must mention both WHAT is changing and WHY (referencing session feels, pain notes, or user feedback).';
   const reviewSys=SYS+'\n\nCRITICAL: When asked to return JSON, return ONLY raw JSON with absolutely no text, explanation, or markdown outside the JSON object.';
   try{
-    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
     const d=await r.json();
+    if(d.error){toast('AI review error: '+d.error.message,true);return;}
     const raw=d.content?.find(b=>b.type==='text')?.text||'';
+    if(!raw){toast('AI review returned no response. Please try again.',true);return;}
     const jsonStr=raw.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     const parsed=JSON.parse(jsonStr);
     if(parsed.summary||parsed.changes){
@@ -512,7 +516,7 @@ async function aiReview(){
       st.programmeFeedback='';
       await sv(st);render();
     }
-  }catch(e){}
+  }catch(e){toast('AI review failed: '+(e.message||'unknown error'),true);}
 }
 
 let recentlyChangedIds=new Set();
