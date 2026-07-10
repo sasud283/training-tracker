@@ -61,7 +61,9 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 .badge-a{background:#DBEAFE;color:#1d4ed8;}
 .badge-b{background:#FEF9C3;color:#854d0e;}
 .badge-c{background:#DCFCE7;color:#15803d;}
+.badge-d{background:#EDE9FE;color:#6d28d9;}
 .wk-btn.wc{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+.wk-btn.wd{background:#6d28d9;color:#fff;border-color:#6d28d9;}
 .sec-hdr{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;padding:14px 0 6px;}
 .wt-row{display:flex;align-items:center;gap:12px;margin-bottom:1rem;}
 .wt-row label{font-size:13px;font-weight:600;letter-spacing:-0.01em;color:var(--text-muted);min-width:110px;}
@@ -71,8 +73,8 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 .pain-btn{padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:500;background:var(--white);color:var(--text-muted);font-family:inherit;transition:all 0.15s;}
 .pain-btn:hover{border-color:var(--text);color:var(--text);}
 .pain-btn.on{background:#FEE2E2;color:#b91c1c;border-color:#fca5a5;}
-.wk-toggle{display:flex;gap:8px;margin-bottom:1rem;}
-.wk-btn{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:-0.01em;font-family:inherit;background:var(--white);color:var(--text-muted);text-align:center;letter-spacing:-0.01em;transition:all 0.2s;}
+.wk-toggle{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.wk-btn{flex:1;min-width:120px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:-0.01em;font-family:inherit;background:var(--white);color:var(--text-muted);text-align:center;letter-spacing:-0.01em;transition:all 0.2s;}
 .wk-btn:hover{border-color:var(--text);color:var(--text);}
 .wk-btn.wa{background:var(--accent);color:var(--text);border-color:var(--text);}
 .wk-btn.wb{background:#111;color:var(--accent);border-color:#111;}
@@ -150,6 +152,12 @@ IL.c2_row=IL.a1_row;IL.c2_pushup=IL.a3_plank;
 IL.c3_lateral=IL.a3_facepull;IL.c3_birddog=IL.a2_birddog;
 IL.c_carry=IL.a_suitcase;
 
+// Workout D (travel/band) reuses existing illustrations
+IL.d1_squat=IL.b1_squat;IL.d1_lateralwalk=IL.b1_woodchop;
+IL.d2_row=IL.a1_row;IL.d2_press=IL.a2_floorpress;
+IL.d3_plank=IL.a3_plank;IL.d3_pullapart=IL.a3_facepull;
+IL.d_rdl=IL.c1_rdl;
+
 const YT={
 a1_row:'https://www.youtube.com/results?search_query=incline+dumbbell+bicep+curl+how+to',
 a1_deadbug:'https://www.youtube.com/results?search_query=reverse+snow+angel+exercise+floor+how+to',
@@ -207,12 +215,26 @@ PLAN0.C={name:'Workout C — full body',blocks:[
   {name:'Finisher',exercises:[
     {id:'c_carry',name:'Farmer\'s carry (both hands)',sets:2,reps:'30 steps',wr:'8–12kg each',dw:'8',u:'kg'}]}
 ]};
+PLAN0.D={name:'Workout D — travel (resistance band only)',blocks:[
+  {name:'Block 1: Legs & Glutes',exercises:[
+    {id:'d1_squat',name:'Band squat',sets:3,reps:'15 reps',wr:'Medium band',dw:'',u:''},
+    {id:'d1_lateralwalk',name:'Band lateral walk (monster walk)',sets:3,reps:'12 steps each direction',wr:'Light–medium band',dw:'',u:''}]},
+  {name:'Block 2: Upper Body Push & Pull',exercises:[
+    {id:'d2_row',name:'Standing band row',sets:3,reps:'15 reps',wr:'Medium band',dw:'',u:''},
+    {id:'d2_press',name:'Band overhead press',sets:3,reps:'12 reps',wr:'Light–medium band',dw:'',u:''}]},
+  {name:'Block 3: Core & Posture',exercises:[
+    {id:'d3_plank',name:'Plank hold',sets:3,reps:'20–30 sec',wr:'Bodyweight',dw:'',u:''},
+    {id:'d3_pullapart',name:'Band pull-apart',sets:3,reps:'15 reps',wr:'Light band',dw:'',u:''}]},
+  {name:'Finisher',exercises:[
+    {id:'d_rdl',name:'Band Romanian deadlift',sets:3,reps:'12 reps',wr:'Medium band',dw:'',u:''}]}
+]};
 
 const WARMUP=['Treadmill','Exercise bike','Brisk walk','Rowing machine'];
 const STRETCHES={
   A:['Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 30 sec each side','Neck side stretch — 20 sec each side','Seated thoracic rotation — 10 reps each side','Child\'s pose — 45 sec','Cat-cow — 10 slow reps'],
   B:['Hip flexor lunge stretch — 45 sec each side','Standing quad stretch — 30 sec each side','Seated hamstring stretch — 45 sec each side','Figure-4 glute stretch — 45 sec each side','Calf stretch against wall — 30 sec each side','Lying butterfly stretch — 45 sec'],
-  C:['Hip flexor lunge stretch — 30 sec each side','Hamstring stretch — 30 sec each side','Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 20 sec each side','Glute stretch (figure-4) — 30 sec each side','Child\'s pose — 45 sec']
+  C:['Hip flexor lunge stretch — 30 sec each side','Hamstring stretch — 30 sec each side','Chest doorway stretch — 30 sec','Cross-body shoulder stretch — 20 sec each side','Glute stretch (figure-4) — 30 sec each side','Child\'s pose — 45 sec'],
+  D:['Hip flexor lunge stretch — 30 sec each side','Seated hamstring stretch — 30 sec each side','Cross-body shoulder stretch — 20 sec each side','Cat-cow — 10 slow reps','Child\'s pose — 45 sec']
 };
 
 const SYS=`You are an expert personal trainer and nutrition coach AI for a 43-year-old woman.
@@ -220,6 +242,7 @@ Goals: lose weight to reach her goal (she sets this herself in the app), reduce 
 Knee issues: knee-safe exercises only, build knee strength not aggravate.
 Health: she has endometriosis. On high-pain or endo flare-up days, significantly reduce intensity — prioritise gentle movement, stretching, or rest. Never push through endo pain. Period and cramp days should also be treated with extra care — lower intensity, avoid heavy core compression.
 4 sessions/week Mon/Wed/Fri/weekend, rotating A/B/C. Workout A = upper body & core, B = lower body & glutes, C = full body. 45 mins active. Not a gym lover.
+Workout D is an optional travel workout using only a resistance band (plus bodyweight core work) for when she's away from home/gym equipment — she selects it manually when needed, it is not part of the automatic A/B/C rotation.
 IMPORTANT programme rule: Workout C must never repeat exercises or movement patterns already used in A or B that same week. Specifically — C must not include: squat/lunge patterns (those belong to B), overhead or floor pressing (belongs to A), vertical pulling/curls (belongs to A), supine floor core work like dead bug/hollow body/snow angel (belongs to A), side plank variants (belongs to B), donkey kicks or hip abductions (belongs to B). C should use movement patterns not covered in A or B: hip-hinge (e.g. RDL), horizontal push (e.g. push-up), horizontal pull (e.g. bent-over row), quadruped core (e.g. bird dog), isolation work not duplicated elsewhere, and loaded carries distinct from A's.
 Food: she does NOT count calories — give no numbers. Assess quality, protein, veg/fibre, balance. Note that anti-inflammatory foods are particularly beneficial given her endo.
 Bust reduction via exercise is not directly possible; focus on posture, back/shoulder strength, overall fat loss.
@@ -228,7 +251,7 @@ Energy level guidance: if feeling weak — cut sets or load by ~20–30%, focus 
 Always factor in any stated weaknesses (e.g. tight hips, low motivation) with targeted modifications.
 Be warm, specific, practical, encouraging. Never judge food choices harshly.`;
 
-const EMPTY_ST=()=>({sessions:[],weights:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:8,planChanges:[],pendingAi:null,goalWeight:null,programmeFeedback:''});
+const EMPTY_ST=()=>({sessions:[],weights:[],plan:JSON.parse(JSON.stringify(PLAN0)),planVersion:9,planChanges:[],pendingAi:null,goalWeight:null,programmeFeedback:''});
 
 async function ld(){
   try{
@@ -241,6 +264,7 @@ async function ld(){
       if(!p.planVersion||p.planVersion<6){p.plan=JSON.parse(JSON.stringify(PLAN0));p.planVersion=6;}
       if(p.planVersion<7){if(!p.plan.C)p.plan.C=JSON.parse(JSON.stringify(PLAN0.C));p.planVersion=7;}
       if(p.planVersion<8){p.plan.C=JSON.parse(JSON.stringify(PLAN0.C));p.planVersion=8;}
+      if(p.planVersion<9){if(!p.plan.D)p.plan.D=JSON.parse(JSON.stringify(PLAN0.D));p.planVersion=9;}
       return p;
     }
   }catch(e){}
@@ -256,6 +280,7 @@ let tab='today';
 let wk='A';
 let sd={},pain=[],notes='',cw='',warmup='',warmupTime='',air='',ail=false,ci={},savedFlash=false;
 let cyclePhase=null,energyLevel=null;
+let editingExId=null;
 
 
 // Boot: load state then render
@@ -351,7 +376,7 @@ function rToday(c){
   const wkc=document.createElement('div');wkc.className='card';
   wkc.innerHTML='<div class="card-title">Today\'s workout <span style="font-size:11px;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">(suggested — tap to change)</span></div>';
   const tg=document.createElement('div');tg.className='wk-toggle';
-  [['A','Upper body & core'],['B','Lower body & glutes'],['C','Full body']].forEach(([t,label])=>{
+  [['A','Upper body & core'],['B','Lower body & glutes'],['C','Full body'],['D','Travel — band only']].forEach(([t,label])=>{
     const btn=document.createElement('button');
     btn.className='wk-btn'+(wk===t?' w'+t.toLowerCase():'');
     btn.innerHTML='<strong>'+t+'</strong> — '+label;
@@ -501,7 +526,7 @@ async function aiReview(){
     wk+': '+pd.blocks.map(b=>b.name+' ['+b.exercises.map(e=>e.id+'='+e.name).join(', ')+']').join('; ')
   ).join('\n');
   const feedback=st.programmeFeedback?'\n\nUser feedback about the programme:\n'+st.programmeFeedback:'';
-  const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg","name":"New exercise name if replacing"},"reason":"Specific sentence: what is changing and exactly why based on session data or user feedback"}]}\nCRITICAL RULES:\n1. exerciseId and exerciseName MUST be copied EXACTLY from the plan above — they identify the EXISTING exercise to modify. NEVER put a new exercise name in exerciseName.\n2. To replace an exercise with a different one: keep the old exerciseId and exerciseName as identifiers, put the new exercise name in updates.name.\n3. workout must be the single letter A, B or C — never "Workout A".\n4. blockName must be copied EXACTLY as shown in the plan above.\n5. Only include fields in updates that are actually changing.\n6. The reason field must mention both WHAT is changing and WHY (referencing session feels, pain notes, or user feedback).';
+  const p='Review last '+sess.length+' sessions and suggest 1-3 specific programme adaptations.\n\nSessions: '+sess.map(s=>new Date(s.date).toDateString()+' W'+s.type+' pain:'+(s.pain.join(',')||'none')+' feels:'+JSON.stringify(Object.values(s.exercises).map(e=>e.feel))+' notes:'+(s.notes||'none')).join(' | ')+feedback+'\n\nCurrent plan:\n'+planSummary+'\n\nReturn ONLY a valid JSON object. No text before or after. No markdown. No code fences. Raw JSON only:\n{"summary":"1-2 sentence overview of what is being changed and why","changes":[{"workout":"A","blockName":"Block 1: Back & Pull","exerciseId":"a1_row","exerciseName":"Incline DB curl (bicep focus)","updates":{"sets":4,"reps":"12 reps","wr":"8–12kg","dw":"8","u":"kg","name":"New exercise name if replacing"},"reason":"Specific sentence: what is changing and exactly why based on session data or user feedback"}]}\nCRITICAL RULES:\n1. exerciseId and exerciseName MUST be copied EXACTLY from the plan above — they identify the EXISTING exercise to modify. NEVER put a new exercise name in exerciseName.\n2. To replace an exercise with a different one: keep the old exerciseId and exerciseName as identifiers, put the new exercise name in updates.name.\n3. workout must be the single letter A, B, C or D — never "Workout A".\n4. blockName must be copied EXACTLY as shown in the plan above.\n5. Only include fields in updates that are actually changing.\n6. The reason field must mention both WHAT is changing and WHY (referencing session feels, pain notes, or user feedback).\n7. updates.name (if present) MUST be an actual specific exercise a person can perform (e.g. "Standing cable row"). NEVER put a placeholder, status note, or description of the change itself (e.g. never "Removed", "Replaced", "N/A", "See block 4") — if you cannot name a real replacement exercise, omit the name field entirely and only change sets/reps/wr instead.';
   const reviewSys=SYS+'\n\nCRITICAL: When asked to return JSON, return ONLY raw JSON with absolutely no text, explanation, or markdown outside the JSON object.';
   try{
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,system:reviewSys,messages:[{role:'user',content:p}]})});
@@ -520,6 +545,8 @@ async function aiReview(){
 }
 
 let recentlyChangedIds=new Set();
+const BAD_NAME_RE=/\b(removed|replaced|deleted|n\/a|tbd|placeholder|no change|not applicable|block \d)\b/i;
+const isValidExerciseName=n=>typeof n==='string'&&n.trim().length>=3&&!BAD_NAME_RE.test(n);
 async function applyAiPlanChange(text){
   const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
   const STOP=new Set(['a','an','the','with','and','or','for','to','of','in','on','at','db','dumbbell','dumbbells','barbell','kg','lb','lbs','sets','reps','each','side','sides','both','hands']);
@@ -536,10 +563,19 @@ async function applyAiPlanChange(text){
     const applyToEx=(ex)=>{
       const allowed=['name','sets','reps','wr','dw','u'];
       const updates=ch.updates||{};
-      allowed.forEach(k=>{if(k in updates)ex[k]=updates[k];});
+      let nameRejected=false;
+      allowed.forEach(k=>{
+        if(k==='name'&&'name' in updates){
+          if(isValidExerciseName(updates.name))ex.name=updates.name;
+          else nameRejected=true;
+          return;
+        }
+        if(k in updates)ex[k]=updates[k];
+      });
       recentlyChangedIds.add(ex.id);
       applied++;
-      st.planChanges.push({date:new Date().toISOString(),text:ch.reason||ch.summary||'Plan updated',source:'AI coach'});
+      const reasonText=ch.reason||ch.summary||'Plan updated';
+      st.planChanges.push({date:new Date().toISOString(),text:nameRejected?reasonText+' (AI suggested an invalid replacement name — kept "'+ex.name+'". Edit it manually below if you still want it changed.)':reasonText,source:'AI coach'});
     };
     let matchedByBlock=false;
     workout.blocks.forEach(block=>{
@@ -744,7 +780,7 @@ function rProg(c){
   if(!st.sessions.length){const n=document.createElement('div');n.style.cssText='font-size:11px;color:var(--text-dim);margin-top:6px;';n.textContent='Log at least 1 session to unlock.';rc.appendChild(n);}
   c.appendChild(rc);
 
-  ['A','B','C'].forEach(type=>{
+  ['A','B','C','D'].forEach(type=>{
     const pd=st.plan[type];
     const pc=document.createElement('div');pc.className='card';
     pc.innerHTML='<div class="card-title"><span class="badge badge-'+type.toLowerCase()+'">'+type+'</span>&nbsp; '+pd.name+'</div>';
@@ -755,11 +791,42 @@ function rProg(c){
         const er=document.createElement('div');er.className='prog-ex';
         if(changed)er.style.cssText='background:#f0fdf4;border:1.5px solid #22c55e;border-radius:8px;padding:8px;margin-bottom:4px;';
         er.appendChild(mkThumb(ex.id,true,ex.name));
-        const info=document.createElement('div');
-        const badge=changed?'<span style="display:inline-block;background:#22c55e;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;">✓ UPDATED</span>':'';
-        info.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+ex.name+badge+'</div><div style="font-size:11px;color:var(--text-muted);">'+ex.sets+' sets · '+ex.reps+'</div>';
-        const wr=document.createElement('div');wr.style.cssText='font-size:12px;color:var(--text-muted);text-align:right;';wr.textContent=ex.wr;
-        er.appendChild(info);er.appendChild(wr);bd.appendChild(er);
+        if(editingExId===ex.id){
+          const form=document.createElement('div');form.style.cssText='grid-column:2 / -1;display:flex;flex-direction:column;gap:6px;';
+          const nameIn=document.createElement('input');nameIn.type='text';nameIn.className='ex-input';nameIn.style.cssText='width:100%;text-align:left;';nameIn.value=ex.name;nameIn.placeholder='Exercise name';
+          const row2=document.createElement('div');row2.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+          const setsIn=document.createElement('input');setsIn.type='number';setsIn.className='ex-input';setsIn.style.width='56px';setsIn.value=ex.sets;setsIn.placeholder='Sets';
+          const repsIn=document.createElement('input');repsIn.type='text';repsIn.className='ex-input';repsIn.style.width='130px';repsIn.value=ex.reps;repsIn.placeholder='Reps';
+          const wrIn=document.createElement('input');wrIn.type='text';wrIn.className='ex-input';wrIn.style.width='130px';wrIn.value=ex.wr;wrIn.placeholder='Weight/band';
+          row2.appendChild(setsIn);row2.appendChild(repsIn);row2.appendChild(wrIn);
+          const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;';
+          const saveBtn=document.createElement('button');saveBtn.className='btn primary';saveBtn.style.cssText='padding:4px 12px;font-size:12px;';saveBtn.textContent='Save';
+          saveBtn.onclick=async()=>{
+            if(!nameIn.value.trim()){toast('Exercise name cannot be empty.',true);return;}
+            ex.name=nameIn.value.trim();
+            ex.sets=setsIn.value?parseInt(setsIn.value):ex.sets;
+            ex.reps=repsIn.value.trim();
+            ex.wr=wrIn.value.trim();
+            st.planChanges.push({date:new Date().toISOString(),text:'Manually edited "'+ex.name+'"',source:'You'});
+            editingExId=null;await sv(st);render();
+          };
+          const cancelBtn=document.createElement('button');cancelBtn.className='btn';cancelBtn.style.cssText='padding:4px 12px;font-size:12px;';cancelBtn.textContent='Cancel';
+          cancelBtn.onclick=()=>{editingExId=null;render();};
+          btnRow.appendChild(saveBtn);btnRow.appendChild(cancelBtn);
+          form.appendChild(nameIn);form.appendChild(row2);form.appendChild(btnRow);
+          er.appendChild(form);
+        } else {
+          const info=document.createElement('div');
+          const badge=changed?'<span style="display:inline-block;background:#22c55e;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;">✓ UPDATED</span>':'';
+          info.innerHTML='<div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;">'+ex.name+badge+'</div><div style="font-size:11px;color:var(--text-muted);">'+ex.sets+' sets · '+ex.reps+'</div>';
+          const wr=document.createElement('div');wr.style.cssText='font-size:12px;color:var(--text-muted);text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;';
+          const wrVal=document.createElement('span');wrVal.textContent=ex.wr;
+          const editBtn=document.createElement('button');editBtn.style.cssText='font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;';editBtn.textContent='Edit';
+          editBtn.onclick=()=>{editingExId=ex.id;render();};
+          wr.appendChild(wrVal);wr.appendChild(editBtn);
+          er.appendChild(info);er.appendChild(wr);
+        }
+        bd.appendChild(er);
       });
       pc.appendChild(bd);
     });
