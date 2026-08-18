@@ -51,6 +51,11 @@ body{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;background:
 .feel-btn.fe{background:#DCFCE7;color:#15803d;border-color:#86efac;}
 .feel-btn.fs{background:#DBEAFE;color:#1d4ed8;border-color:#93c5fd;}
 .feel-btn.fh{background:#FEE2E2;color:#b91c1c;border-color:#fca5a5;}
+.push-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;background:#F0F9FF;color:#0369a1;border:1px solid #BAE6FD;}
+.push-hint.hold{background:#FEF3C7;color:#92400e;border-color:#FDE68A;}
+.push-hint button{flex-shrink:0;border:1px solid currentColor;background:transparent;color:inherit;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
+.push-bump{margin-top:6px;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;background:#FEF9C3;color:#854F0B;border:1px solid #FDE68A;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.push-bump button{flex-shrink:0;border:1px solid currentColor;background:transparent;color:inherit;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:-0.01em;font-family:inherit;background:var(--white);color:var(--text);letter-spacing:-0.01em;transition:transform 0.2s cubic-bezier(0.22,1,0.36,1),box-shadow 0.2s,border-color 0.2s;}
 .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:3px 3px 0 var(--text);border-color:var(--text);}
 .btn:disabled{opacity:0.45;cursor:not-allowed;}
@@ -294,6 +299,49 @@ let editingExId=null;
 
 function initSd(t){sd={};st.plan[t].blocks.forEach(b=>b.exercises.forEach(ex=>{sd[ex.id]={weight:ex.dw,feel:null};}));}
 
+// Follicular-phase "push" prompts: suggest progressing weight/reps based on last logged feel for this exercise.
+function lastLoggedFor(exId){
+  for(let i=st.sessions.length-1;i>=0;i--){
+    const e=st.sessions[i].exercises?.[exId];
+    if(e)return{...e,date:st.sessions[i].date};
+  }
+  return null;
+}
+function weightIncrement(w){return w<10?1:2.5;}
+function pushSuggestion(ex){
+  if(cyclePhase!=='follicular')return null; // menstrual excluded for now — pain logs show it's not a "push" phase yet
+  const last=lastLoggedFor(ex.id);
+  if(!last||!last.feel)return null;
+  const hasWeight=!!ex.u;
+  if(hasWeight){
+    const lw=parseFloat(last.weight);
+    if(last.feel==='easy'||last.feel==='solid'){
+      const nextW=isFinite(lw)?+(lw+weightIncrement(lw)).toFixed(1):null;
+      return{hold:false,text:'Last time: '+(isFinite(lw)?lw+ex.u:last.weight+(ex.u||''))+', felt '+last.feel+'. Try '+(nextW!==null?nextW+ex.u:'a bit more')+'?',suggestedWeight:nextW};
+    }
+    return{hold:true,text:'Last time was hard — repeat '+(isFinite(lw)?lw+ex.u:last.weight+(ex.u||''))+' today, or hold steady.',suggestedWeight:isFinite(lw)?lw:null};
+  }
+  if(last.feel==='easy'||last.feel==='solid'){
+    return{hold:false,text:'Last time felt '+last.feel+'. Try +1 set, or add 5–10 sec to your hold.'};
+  }
+  return{hold:true,text:'Last time was hard — hold steady today.'};
+}
+// Two+ follicular sessions logged "easy" in a row for this exercise → suggest bumping its baseline default weight.
+function shouldBumpBaseline(ex){
+  if(!ex.u)return false;
+  const follicularEntries=st.sessions.filter(s=>s.cyclePhase==='follicular'&&s.exercises?.[ex.id]).slice(-2);
+  return follicularEntries.length>=2&&follicularEntries.every(s=>s.exercises[ex.id].feel==='easy');
+}
+async function bumpBaseline(ex){
+  const lw=parseFloat(lastLoggedFor(ex.id)?.weight);
+  const newDw=isFinite(lw)?+(lw+weightIncrement(lw)).toFixed(1):ex.dw;
+  const oldDw=ex.dw;
+  ex.dw=String(newDw);
+  st.planChanges.push({date:new Date().toISOString(),text:'Baseline weight for "'+ex.name+'" raised from '+oldDw+(ex.u||'')+' to '+newDw+(ex.u||'')+' — easy for 2+ follicular sessions in a row.',source:'Progression suggestion'});
+  sd[ex.id]={...(sd[ex.id]||{}),weight:String(newDw)};
+  await sv(st);render();
+}
+
 function mkThumb(id,sm,name){
   const d=document.createElement('div');
   d.className=sm?'prog-thumb':'ex-thumb';
@@ -426,7 +474,27 @@ function rToday(c){
         const btn=document.createElement('button');btn.className='feel-btn'+(s.feel===val?' '+cls:'');btn.textContent=lbl;
         btn.onclick=()=>{sd[ex.id]={...(sd[ex.id]||{}),feel:val};render();};fb.appendChild(btn);
       });
-      ctrl.appendChild(fb);inf.appendChild(ctrl);mr.appendChild(inf);wrap.appendChild(mr);bc.appendChild(wrap);
+      ctrl.appendChild(fb);inf.appendChild(ctrl);
+      const push=pushSuggestion(ex);
+      if(push){
+        const ph=document.createElement('div');ph.className='push-hint'+(push.hold?' hold':'');
+        const txt=document.createElement('span');txt.textContent=(push.hold?'⏸ ':'↑ ')+push.text;ph.appendChild(txt);
+        if(!push.hold&&push.suggestedWeight!=null){
+          const useBtn=document.createElement('button');useBtn.textContent='Use '+push.suggestedWeight+ex.u;
+          useBtn.onclick=()=>{sd[ex.id]={...(sd[ex.id]||{}),weight:String(push.suggestedWeight)};render();};
+          ph.appendChild(useBtn);
+        }
+        inf.appendChild(ph);
+      }
+      if(shouldBumpBaseline(ex)){
+        const bb=document.createElement('div');bb.className='push-bump';
+        const bumpDw=isFinite(parseFloat(ex.dw))?+(parseFloat(ex.dw)+weightIncrement(parseFloat(ex.dw))).toFixed(1):null;
+        const btxt=document.createElement('span');btxt.textContent='💡 Easy for 2+ follicular sessions — raise the default weight?';bb.appendChild(btxt);
+        const bBtn=document.createElement('button');bBtn.textContent=bumpDw!=null?'Set default to '+bumpDw+ex.u:'Raise default';
+        bBtn.onclick=()=>bumpBaseline(ex);bb.appendChild(bBtn);
+        inf.appendChild(bb);
+      }
+      mr.appendChild(inf);wrap.appendChild(mr);bc.appendChild(wrap);
     });
     c.appendChild(bc);
   });
